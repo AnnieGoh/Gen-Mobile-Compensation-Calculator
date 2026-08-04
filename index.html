@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gen Mobile Compensation Calculator</title>
+<style>
+  :root {
+    --red: #e2231a;
+    --red-dark: #b81c14;
+    --dark: #222;
+    --gray: #666;
+    --light-bg: #f5f6f8;
+    --border: #ddd;
+    --teal: #14b3ab;
+    --teal-dark: #0d7d76;
+    --teal-tint: #eafbfa;
+    --amber: #d18700;
+    --purple: #7c5cbf;
+    --eureka-dark: #142244;
+    --eureka-green: #57bb57;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--light-bg);
+    margin: 0;
+    padding: 24px;
+    color: var(--dark);
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  .eureka-bar {
+    background: var(--eureka-dark);
+    color: #fff;
+    border-radius: 10px;
+    padding: 13px 24px;
+    margin-bottom: 12px;
+    border-bottom: 4px solid var(--eureka-green);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .eureka-bar .eureka-logo-svg {
+    height: 26px;
+    width: auto;
+    display: block;
+  }
+  .eureka-bar .eureka-tag {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 500;
+  }
+  .eureka-footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--gray);
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+  .eureka-footer .accent { color: var(--eureka-green); font-weight: 700; }
+  .legal-disclaimer {
+    font-size: 10.5px;
+    color: var(--gray);
+    line-height: 1.5;
+    text-align: center;
+    max-width: 620px;
+    margin: 0 auto 16px auto;
+    padding-top: 10px;
+  }
+  .masthead {
+    background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+    color: #fff;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .masthead .logo {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .masthead .subtitle {
+    color: rgba(255,255,255,0.9);
+    font-size: 12.5px;
+    margin-top: 2px;
+    font-weight: 500;
+  }
+  .masthead .masthead-badge {
+    background: var(--teal);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .card > h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #fff;
+    font-weight: 700;
+    background: var(--teal);
+    margin: -20px -24px 16px -24px;
+    padding: 11px 24px;
+    border-radius: 10px 10px 0 0;
+  }
+  .card.highlight > h2 {
+    background: var(--red);
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    margin-top: 12px;
+  }
+  label:first-of-type { margin-top: 0; }
+  select, input[type=text] {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+  }
+  .row { display: flex; gap: 16px; }
+  .row > div { flex: 1; }
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 13px;
+  }
+  .checkbox-row input { width: auto; }
+  .checkbox-row label { margin: 0; font-weight: 500; }
+  .hint {
+    font-size: 12px;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+  .result-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+  }
+  .result-line:last-child { border-bottom: none; }
+  .result-line .amt { font-weight: 600; }
+  .result-line.total {
+    font-size: 16px;
+    font-weight: 700;
+    border-top: 2px solid var(--dark);
+    margin-top: 6px;
+    padding-top: 10px;
+  }
+  .result-line.total .amt { color: var(--red); }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 10px;
+    background: var(--red);
+    color: #fff;
+    margin-left: 6px;
+  }
+  .badge.warn { background: #d18700; }
+  .muted { color: var(--gray); font-size: 12.5px; }
+  .disabled-section { opacity: 0.45; pointer-events: none; }
+  .footnote {
+    font-size: 11.5px;
+    color: var(--gray);
+    line-height: 1.5;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .warning-box {
+    background: #fff4e5;
+    border: 1px solid #ffcf8a;
+    color: #8a5300;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-top: 10px;
+  }
+  .view-toggle {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .view-toggle button {
+    flex: 1;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--gray);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .view-toggle button.active {
+    background: var(--dark);
+    color: #fff;
+    border-color: var(--dark);
+  }
+  .chart-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 180px;
+    padding: 20px 4px 0 4px;
+    overflow-x: auto;
+  }
+  .bar-col {
+    flex: 1 0 26px;
+    min-width: 26px;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    height: 140px;
+    position: relative;
+  }
+  .bar-seg {
+    width: 100%;
+    max-width: 34px;
+    border-radius: 3px 3px 0 0;
+  }
+  .bar-seg.base { background: var(--teal); }
+  .bar-seg.bonus { background: var(--red); border-radius: 3px 3px 0 0; }
+  .bar-seg.rtr { background: var(--amber); }
+  .bar-seg.residual { background: var(--purple); }
+  .bar-value {
+    position: absolute;
+    bottom: 100%;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--dark);
+    white-space: nowrap;
+    margin-bottom: 3px;
+  }
+  .bar-label {
+    font-size: 10.5px;
+    color: var(--gray);
+    margin-top: 8px;
+    text-align: center;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--gray);
+    margin-bottom: 4px;
+  }
+  .chart-legend span { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+  table.breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 16px;
+  }
+  table.breakdown-table th, table.breakdown-table td {
+    text-align: right;
+    padding: 7px 8px;
+    border-bottom: 1px solid #eee;
+  }
+  table.breakdown-table th:first-child, table.breakdown-table td:first-child { text-align: left; }
+  table.breakdown-table th {
+    color: var(--teal-dark);
+    font-weight: 700;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    background: var(--teal-tint);
+  }
+  table.breakdown-table tbody tr:nth-child(even) td { background: var(--teal-tint); }
+  table.breakdown-table tr.bonus-row td { color: var(--red); }
+  .card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    margin: -20px -24px 0 -24px;
+    padding: 11px 24px;
+    background: var(--teal);
+    border-radius: 10px 10px 0 0;
+  }
+  .card-header-row h2 { margin: 0; color: #fff; background: none; padding: 0; }
+  .card-header-row .chevron {
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 700;
+    color: #fff;
+    transition: transform 0.15s ease;
+  }
+  .card-header-row .chevron.open { transform: rotate(90deg); }
+  .collapsible-content { margin-top: 14px; }
+  .collapsible-content.collapsed { display: none; }
+  input[type=range] {
+    width: 100%;
+    margin: 8px 0 4px 0;
+  }
+  .months-slider-block {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eureka-bar">
+    <svg class="eureka-logo-svg" viewBox="0 0 145 56" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="eureka">
+      <text x="2" y="39" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="32" letter-spacing="-0.5" fill="#ffffff">eure</text>
+      <rect x="74" y="11" width="6" height="25" rx="3" fill="#57bb57"></rect>
+      <circle cx="77" cy="45" r="4" fill="#57bb57"></circle>
+      <text x="85" y="39" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="32" letter-spacing="-0.5" fill="#ffffff">ka</text>
+      <text x="128" y="18" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#ffffff">&#174;</text>
+    </svg>
+    <div class="eureka-tag">Authorized Gen Mobile Retailer</div>
+  </div>
+
+  <div class="masthead">
+    <div>
+      <div class="logo">gen<span>mobile</span></div>
+      <div class="subtitle">Retailer Compensation Calculator</div>
+    </div>
+    <span class="masthead-badge">Retailer Tool</span>
+  </div>
+
+  <div class="card">
+    <h2>Activation Details</h2>
+
+    <div class="row">
+      <div>
+        <label for="network">Network</label>
+        <select id="network">
+          <option value="Sky">Sky</option>
+          <option value="Orange">Orange</option>
+          <option value="Rose">Rose</option>
+        </select>
+      </div>
+      <div>
+        <label for="plan">Plan</label>
+        <select id="plan">
+          <option value="8GB">8GB — $20/mo</option>
+          <option value="15GB">15GB — $30/mo</option>
+          <option value="25GB">25GB — $40/mo</option>
+          <option value="UNL">Unlimited (45GB) — $50/mo</option>
+        </select>
+      </div>
+      <div>
+        <label for="term">Term</label>
+        <select id="term">
+          <option value="1">1 Month</option>
+          <option value="3">3 Month</option>
+          <option value="6">6 Month</option>
+          <option value="12">12 Month</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="applyBonus">
+      <label for="applyBonus">Apply Multi-Month Plan Activation Bonus <span class="badge">Promo: Jul 1 – Aug 31, 2026</span></label>
+    </div>
+    <div class="hint" id="bonusHint"></div>
+  </div>
+
+  <div class="card">
+    <h2>Device (Optional)</h2>
+    <div class="checkbox-row">
+      <input type="checkbox" id="addPhone">
+      <label for="addPhone">Customer is purchasing a phone through Gen Mobile</label>
+    </div>
+    <div class="hint">Leave unchecked if the customer is bringing their own device (BYOD) — no rebate applies.</div>
+    <div id="phoneSection" class="disabled-section">
+      <label for="phoneModel">Device Model</label>
+      <select id="phoneModel"></select>
+      <div class="hint" id="phoneHint"></div>
+    </div>
+  </div>
+
+  <div class="card" id="residualCard">
+    <h2>Residual (1-Month Plans Only)</h2>
+    <div class="checkbox-row">
+      <input type="checkbox" id="autoPay">
+      <label for="autoPay">Customer enrolled in AutoPay (+5% residual)</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="meetsThreshold">
+      <label for="meetsThreshold">Retailer meets residual qualification (3+ activations/mo & 65% 2nd-Month Refill rate)</label>
+    </div>
+    <div class="hint">Residual applies to Months 5–24 of an active 1-month plan line: up to 4% base residual + 5% AutoPay residual (up to 9% total). Not combinable with other offers.</div>
+  </div>
+
+  <div class="card highlight">
+    <h2>Estimated Compensation</h2>
+    <div class="result-line">
+      <span>Base Network Compensation</span>
+      <span class="amt" id="outBase">$0.00</span>
+    </div>
+    <div class="result-line" id="bonusLine" style="display:none;">
+      <span>Multi-Month Activation Bonus</span>
+      <span class="amt" id="outBonus">$0.00</span>
+    </div>
+    <div class="result-line total">
+      <span>Total Activation Payout</span>
+      <span class="amt" id="outTotal">$0.00</span>
+    </div>
+
+    <div id="monthsConsideredBlock" class="months-slider-block" style="display:none;">
+      <label for="monthsConsidered">Customer stays active for (months, including activation month)</label>
+      <input type="range" id="monthsConsidered" min="1" max="24" value="1">
+      <div class="hint" id="monthsConsideredHint">Month 1 only (activation)</div>
+      <div class="result-line total">
+        <span>Cumulative Compensation (Months 1–<span id="monthsConsideredNum">1</span>)</span>
+        <span class="amt" id="outCumulative">$0.00</span>
+      </div>
+    </div>
+
+    <div id="phoneResultBlock" style="display:none;">
+      <div class="result-line">
+        <span>Device Price</span>
+        <span class="amt" id="outPhonePrice">$0.00</span>
+      </div>
+      <div class="result-line">
+        <span>Price After Rebate (customer pays)</span>
+        <span class="amt" id="outPhoneAfter">$0.00</span>
+      </div>
+      <div class="result-line">
+        <span>Rebate Amount</span>
+        <span class="amt" id="outRebate">$0.00</span>
+      </div>
+      <div id="phoneWarning"></div>
+    </div>
+
+    <div id="residualResultBlock" style="display:none;">
+      <div class="result-line">
+        <span>Estimated Monthly Residual (Mo. 5–24)</span>
+        <span class="amt" id="outResidual">$0.00 <span id="residualPct" class="muted"></span></span>
+      </div>
+    </div>
+
+    <div class="footnote">
+      Base compensation and cost figures are sourced from the Orange &amp; Sky and Rose network compensation tables (includes MRC payout + 10% refill discount on Multi-Month upfront purchases, capped at 6 months). Spiffs charge back on port-outs within 30 days of activation/2nd refill or Terms &amp; Conditions violations. Multi-Month Activation Bonus ($5/$15/$40 for 3/6/12-month, 8GB+ plans) is a limited-time promo, Jul 1 – Aug 31, 2026, paid weekly via TSP, and is separate from the standard comp shown above. Reference: retailer net cost (plan price minus comp) is not needed to compute payout but is available on request. All figures are estimates — Gen Mobile may modify, amend, or cancel offers at any time, subject to TSP/Distributor agreements and Gen Mobile's Terms &amp; Conditions.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header-row" id="breakdownToggle">
+      <h2>Monthly Compensation Breakdown</h2>
+      <span class="chevron" id="breakdownChevron">▸</span>
+    </div>
+    <div class="hint" id="breakdownCollapsedHint" style="margin-top:12px;">Click to expand month-by-month payout detail.</div>
+    <div class="collapsible-content collapsed" id="breakdownContent">
+      <div class="chart-legend" id="chartLegend"></div>
+      <div class="chart-wrap" id="chartWrap"></div>
+      <table class="breakdown-table" id="breakdownTable">
+        <thead>
+          <tr><th>Month</th><th>Type</th><th>Payout</th><th>Cumulative</th></tr>
+        </thead>
+        <tbody id="breakdownBody"></tbody>
+      </table>
+      <div class="footnote" id="breakdownFootnote"></div>
+    </div>
+  </div>
+
+  <div class="eureka-footer">Powered by <span class="accent">eureka</span></div>
+  <div class="legal-disclaimer">Disclaimer: This calculator was independently created by Eureka Revenues, LLC and is not an official tool of Gen Mobile. It is intended for illustrative/example purposes only. Please verify all figures against official promotion details. In the event of any discrepancy, Gen Mobile's official payout determination will govern.</div>
+</div>
+
+<script>
+// ---- Data tables ----
+
+// Base compensation (COMP column), keyed by plan tier + term
+const COMP = {
+  orangeSky: {
+    "8GB":  {1: 12.00, 3: 32.40, 6: 61.20,  12: 67.20},
+    "15GB": {1: 18.00, 3: 48.60, 6: 91.80,  12: 100.80},
+    "25GB": {1: 24.00, 3: 64.80, 6: 122.40, 12: 134.40},
+    "UNL":  {1: 30.00, 3: 76.50, 6: 144.00, 12: 157.50}
+  },
+  rose: {
+    "8GB":  {1: 10.00, 3: 27.00, 6: 51.00,  12: 57.60},
+    "15GB": {1: 15.00, 3: 40.50, 6: 76.50,  12: 86.40},
+    "25GB": {1: 20.00, 3: 54.00, 6: 102.00, 12: 115.20},
+    "UNL":  {1: 25.00, 3: 63.75, 6: 120.00, 12: 135.00}
+  }
+};
+
+// Retailer net cost (COST column) — reference only
+const COST = {
+  orangeSky: {
+    "8GB":  {1: 8.00,  3: 21.60, 6: 40.80, 12: 124.80},
+    "15GB": {1: 12.00, 3: 32.40, 6: 61.20, 12: 187.20},
+    "25GB": {1: 16.00, 3: 43.20, 6: 81.60, 12: 249.60},
+    "UNL":  {1: 20.00, 3: 51.60, 6: 96.00, 12: 292.50}
+  },
+  rose: {
+    "8GB":  {1: 10.00, 3: 27.00, 6: 51.00, 12: 134.40},
+    "15GB": {1: 15.00, 3: 40.50, 6: 76.50, 12: 201.60},
+    "25GB": {1: 20.00, 3: 54.00, 6: 102.00, 12: 268.80},
+    "UNL":  {1: 25.00, 3: 63.75, 6: 120.00, 12: 315.00}
+  }
+};
+
+const MRC = { "8GB": 20, "15GB": 30, "25GB": 40, "UNL": 50 };
+
+const ACTIVATION_BONUS = { 1: 0, 3: 5, 6: 15, 12: 40 };
+
+// Relative monthly weights (% of MRC) from the standard spiff schedule:
+// Month 1 = Instant spiff only; Months 2-6 = refill spiff + 10% refill discount.
+// Used only to shape the month-by-month split of the (already-exact) total comp figure.
+const WEIGHTS = {
+  orangeSky: [50, 60, 60, 60, 60, 60],
+  rose: [40, 50, 50, 50, 50, 50]
+};
+
+function monthlyBreakdown(network, plan, term) {
+  const weights = network === "Rose" ? WEIGHTS.rose : WEIGHTS.orangeSky;
+  const mrc = MRC[plan];
+  const total = compTable(network)[plan][term];
+  let monthly;
+
+  if (term <= 6) {
+    const w = weights.slice(0, term);
+    const raw = w.map(x => x / 100 * mrc);
+    const rawSum = raw.reduce((a, b) => a + b, 0);
+    const scale = rawSum > 0 ? total / rawSum : 0;
+    monthly = raw.map(x => x * scale);
+  } else {
+    // 12-month: months 1-6 follow the same shape as the 6-month total (spiff capped at 6 months),
+    // months 7-12 spread the remaining balance evenly (ongoing refill-only compensation).
+    const sixTotal = compTable(network)[plan][6];
+    const raw6 = weights.map(x => x / 100 * mrc);
+    const rawSum6 = raw6.reduce((a, b) => a + b, 0);
+    const scale6 = rawSum6 > 0 ? sixTotal / rawSum6 : 0;
+    const first6 = raw6.map(x => x * scale6);
+    const remainder = total - sixTotal;
+    const remEach = remainder / 6;
+    monthly = first6.concat(Array(6).fill(remEach));
+  }
+
+  // Round to cents, then push any rounding drift into the last month so the sum matches exactly.
+  let roundedSum = 0;
+  const rounded = monthly.map(v => {
+    const r = Math.round(v * 100) / 100;
+    roundedSum += r;
+    return r;
+  });
+  const diff = Math.round((total - roundedSum) * 100) / 100;
+  rounded[rounded.length - 1] = Math.round((rounded[rounded.length - 1] + diff) * 100) / 100;
+  return rounded;
+}
+
+const RTR_RATE = 0.10; // standard "every refill earns 10% of MRC" rate, Months 2-4 on 1-month plans
+
+const TYPE_META = {
+  activation: { cls: "base", label: "Activation" },
+  refillSpiff: { cls: "base", label: "Refill Spiff" },
+  refillOngoing: { cls: "base", label: "Refill (Ongoing)" },
+  rtr: { cls: "rtr", label: "Refill (RTR, 10% MRC)" },
+  residual: { cls: "residual", label: "Residual" }
+};
+
+// Builds the item list for the 3/6/12-month spiff-based view.
+function buildMultiMonthSchedule(network, plan, term, bonusAmount) {
+  const monthly = monthlyBreakdown(network, plan, term);
+  return monthly.map((amount, i) => {
+    let type = "refillSpiff";
+    if (i === 0) type = "activation";
+    else if (term === 12 && i >= 6) type = "refillOngoing";
+    return { amount, type, bonus: i === 0 ? bonusAmount : 0 };
+  });
+}
+
+// Builds the 24-month view for 1-month plans: Month 1 activation, Months 2-4 RTR, Months 5-24 residual.
+function build24MonthSchedule(network, plan, autoPay, meetsThreshold) {
+  const activation = compTable(network)[plan][1];
+  const mrc = MRC[plan];
+  const rtrAmount = mrc * RTR_RATE;
+  const residualPct = meetsThreshold ? (4 + (autoPay ? 5 : 0)) : 0;
+  const residualAmount = mrc * (residualPct / 100);
+
+  const schedule = [{ amount: activation, type: "activation", bonus: 0 }];
+  for (let m = 2; m <= 4; m++) schedule.push({ amount: rtrAmount, type: "rtr", bonus: 0 });
+  for (let m = 5; m <= 24; m++) schedule.push({ amount: residualAmount, type: "residual", bonus: 0 });
+  return schedule;
+}
+
+function renderBreakdown(network, plan, term, bonusAmount, autoPay, meetsThreshold) {
+  const is1Month = term === 1;
+  const schedule = is1Month
+    ? build24MonthSchedule(network, plan, autoPay, meetsThreshold)
+    : buildMultiMonthSchedule(network, plan, term, bonusAmount);
+
+  const chartWrap = document.getElementById("chartWrap");
+  const body = document.getElementById("breakdownBody");
+  const legend = document.getElementById("chartLegend");
+  const footnote = document.getElementById("breakdownFootnote");
+  chartWrap.innerHTML = "";
+  body.innerHTML = "";
+
+  const totals = schedule.map(item => item.amount + item.bonus);
+  const maxTotal = Math.max(...totals, 0.01);
+  let cumulative = 0;
+
+  const typesPresent = new Set();
+  let hasBonus = false;
+
+  schedule.forEach((item, i) => {
+    const monthTotal = item.amount + item.bonus;
+    cumulative += monthTotal;
+    typesPresent.add(item.type);
+    if (item.bonus > 0) hasBonus = true;
+
+    const meta = TYPE_META[item.type];
+
+    // Chart column
+    const col = document.createElement("div");
+    col.className = "bar-col";
+
+    const baseSeg = document.createElement("div");
+    baseSeg.className = "bar-seg " + meta.cls;
+    baseSeg.style.height = Math.max((item.amount / maxTotal) * 140, item.amount > 0 ? 2 : 0) + "px";
+    baseSeg.title = "Month " + (i + 1) + " " + meta.label + ": " + fmt(item.amount);
+    col.appendChild(baseSeg);
+
+    if (item.bonus > 0) {
+      const bonusSeg = document.createElement("div");
+      bonusSeg.className = "bar-seg bonus";
+      bonusSeg.style.height = Math.max((item.bonus / maxTotal) * 140, 2) + "px";
+      bonusSeg.title = "Month " + (i + 1) + " bonus: " + fmt(item.bonus);
+      col.appendChild(bonusSeg);
+    }
+
+    // Only label every month for shorter views; thin out labels for the 24-month view to avoid crowding
+    const showLabel = !is1Month || (i + 1) % 2 === 1 || i < 5;
+    if (showLabel) {
+      const val = document.createElement("div");
+      val.className = "bar-value";
+      val.textContent = fmt(monthTotal);
+      col.appendChild(val);
+    }
+
+    const label = document.createElement("div");
+    label.className = "bar-label";
+    label.textContent = "M" + (i + 1);
+    col.appendChild(label);
+
+    chartWrap.appendChild(col);
+
+    // Table row
+    const row = document.createElement("tr");
+    if (item.bonus > 0) row.className = "bonus-row";
+    row.innerHTML = "<td>Month " + (i + 1) + "</td>" +
+      "<td>" + meta.label + (item.bonus > 0 ? " + Bonus" : "") + "</td>" +
+      "<td>" + fmt(monthTotal) + "</td>" +
+      "<td>" + fmt(cumulative) + "</td>";
+    body.appendChild(row);
+  });
+
+  // Legend — only show entries relevant to the current schedule
+  const legendItems = [];
+  if (typesPresent.has("activation") || typesPresent.has("refillSpiff") || typesPresent.has("refillOngoing")) {
+    legendItems.push(["var(--teal)", "Activation / spiff / refill payout"]);
+  }
+  if (hasBonus) legendItems.push(["var(--red)", "Activation bonus"]);
+  if (typesPresent.has("rtr")) legendItems.push(["var(--amber)", "RTR — standard refill (10% of MRC)"]);
+  if (typesPresent.has("residual")) legendItems.push(["var(--purple)", "Residual (Months 5–24)"]);
+  legend.innerHTML = legendItems.map(([color, text]) =>
+    '<span><span class="legend-dot" style="background:' + color + '"></span> ' + text + "</span>"
+  ).join("");
+
+  // Footnote
+  if (is1Month) {
+    footnote.textContent = meetsThreshold
+      ? "1-month plans are shown over a 24-month horizon: Month 1 is the activation payout, Months 2–4 are the standard refill payout (RTR, 10% of MRC per refill), and Months 5–24 apply the Residual rate you selected above (" + (4 + (autoPay ? 5 : 0)) + "% of MRC), assuming the line stays active and refill/AutoPay behavior continues as configured. This assumes continuous monthly refills for the full 24 months — actual earnings depend on the customer staying active and paying each month."
+      : "1-month plans are shown over a 24-month horizon: Month 1 is the activation payout and Months 2–4 are the standard refill payout (RTR, 10% of MRC per refill). Residual (Months 5–24) shows $0 because \"Retailer meets residual qualification\" isn't checked above — check it (and AutoPay, if applicable) to project residual earnings. This assumes continuous monthly refills for the full 24 months — actual earnings depend on the customer staying active and paying each month.";
+  } else {
+    footnote.textContent = "This view spreads the total activation payout above across the months it's typically disbursed, based on Gen Mobile's standard spiff schedule (Instant spiff in Month 1, plus refill spiffs + 10% refill discount in Months 2–6), reconciled so the total matches the payout shown above exactly. For 12-month plans, Months 7–12 reflect the remaining balance spread evenly (ongoing refill compensation continues after the 6-month spiff cap). The Activation Bonus, when applied, is shown entirely in Month 1 since it's paid out on activation. Actual weekly/monthly disbursement timing is set by your TSP and may vary from this estimate.";
+  }
+}
+
+// Device rebate table
+// price: device price; tier20: rebate cols for $20-30 plans [1mo, stack]; tier40: rebate cols for $40+ plans [1mo, stack]
+// values are PRICE AFTER REBATE
+const DEVICES = [
+  {name:"Maxwest Neo Flip (New Unlocked)", price:40, networks:["Rose","Sky"], t20:[20,0], t40:[15,0]},
+  {name:"BLU C5L Max (New Unlocked)", price:50, networks:["Rose","Sky"], t20:[30,25], t40:[20,15]},
+  {name:"Hot Pepper Tepin (New Unlocked)", price:50, networks:["Rose","Sky"], t20:[30,0], t40:[25,0]},
+  {name:"SCHOK Classic Flip (Renewed Unlocked)", price:50, networks:["Rose","Sky"], t20:[30,10], t40:[25,10]},
+  {name:"Hot Pepper Fresno (New Unlocked)", price:55, networks:["Rose"], t20:[40,0], t40:[35,0]},
+  {name:"BLU G33 (New Unlocked)", price:60, networks:["Rose","Sky"], t20:[40,0], t40:[35,0]},
+  {name:"BLU G35 (New Unlocked)", price:60, networks:["Rose","Sky"], t20:[40,0], t40:[35,0]},
+  {name:"Foxx A65 (New Unlocked)", price:60, networks:["Sky"], t20:[40,0], t40:[35,0]},
+  {name:"Hot Pepper Cascabel (New Unlocked)", price:60, networks:["Rose","Sky"], t20:[40,0], t40:[35,0]},
+  {name:"NUU A23 (New Unlocked)", price:60, networks:["Rose","Sky"], t20:[40,0], t40:[35,0]},
+  {name:"NUU N13 (New Unlocked)", price:60, networks:["Rose","Sky"], t20:[40,0], t40:[35,0]},
+  {name:"Bounce (Renewed)", price:70, networks:["Sky"], t20:[50,40], t40:[40,30]},
+  {name:"Maxwest Astro A65 (New Unlocked)", price:70, networks:["Rose","Sky"], t20:[50,0], t40:[45,0]},
+  {name:"Maxwest Nitro A65 (New Unlocked)", price:70, networks:["Rose","Sky"], t20:[50,0], t40:[45,0]},
+  {name:"TCL 30Z (Renewed)", price:70, networks:["Sky"], t20:[50,50], t40:[40,40]},
+  {name:"Moto G Play (2023) (Renewed)", price:75, networks:["Sky"], t20:[55,30], t40:[50,15]},
+  {name:"Moto G Power (2022) (Renewed)", price:75, networks:["Sky"], t20:[55,30], t40:[50,15]},
+  {name:"Samsung A03s (Renewed)", price:75, networks:["Sky"], t20:[55,30], t40:[50,15]},
+  {name:"BLU G53 (New Unlocked)", price:80, networks:["Rose","Sky"], t20:[60,35], t40:[55,20]},
+  {name:"Moto G 5G (2022) (Renewed)", price:85, networks:["Sky"], t20:[65,40], t40:[60,25]},
+  {name:"Celero 5G (Renewed)", price:90, networks:["Sky"], t20:[60,60], t40:[50,50]},
+  {name:"Samsung Galaxy A23 5G (Renewed)", price:100, networks:["Rose","Sky"], t20:[60,35], t40:[55,20]},
+  {name:"Samsung Galaxy A14 5G (Renewed)", price:110, networks:["Rose","Sky"], t20:[70,45], t40:[65,30]},
+  {name:"Moto G 5G (2023) (Renewed)", price:115, networks:["Rose","Sky"], t20:[75,35], t40:[50,20]},
+  {name:"Moto G Stylus 5G (2023) (Renewed)", price:120, networks:["Rose","Sky"], t20:[80,55], t40:[75,40]},
+  {name:"Moto G Stylus 5G (2024) (Renewed)", price:120, networks:["Rose","Sky"], t20:[80,55], t40:[75,40]},
+  {name:"Samsung Galaxy A15 5G (Renewed)", price:120, networks:["Rose","Sky"], t20:[80,55], t40:[75,40]},
+  {name:"Moto G Stylus 5G (2022) (Renewed)", price:130, networks:["Sky"], t20:[80,70], t40:[70,60]},
+  {name:"Apple iPhone SE (2020) (Renewed Unlocked)", price:120, networks:["Rose","Sky","Orange"], t20:[80,55], t40:[75,40]},
+  {name:"Samsung Galaxy A32 5G (Renewed)", price:150, networks:["Rose","Sky"], t20:[100,100], t40:[90,90]},
+  {name:"Apple iPhone 11 (Renewed Unlocked)", price:185, networks:["Rose","Sky","Orange"], t20:[165,140], t40:[160,125]},
+  {name:"Moto RAZR (2023) (Renewed)", price:210, networks:["Rose","Sky"], t20:[190,165], t40:[185,150]},
+  {name:"Apple iPhone 12 (Renewed Unlocked)", price:210, networks:["Rose","Sky","Orange"], t20:[205,180], t40:[200,165]},
+  {name:"Apple iPhone 13 (Renewed Unlocked)", price:315, networks:["Rose","Sky","Orange"], t20:[295,270], t40:[290,255]},
+  {name:"Samsung Galaxy A15 5G (New Unlocked)", price:140, networks:["Rose","Sky"], t20:[100,75], t40:[95,60]},
+  {name:"Maxwest Nitro N67 (New Unlocked)", price:80, networks:["Rose","Sky"], t20:[60,35], t40:[55,20]},
+  {name:"Cingular Flex 2 (Renewed Unlocked)", price:50, networks:["Sky"], t20:[35,0], t40:[30,0]}
+];
+
+// ---- Helpers ----
+function fmt(n) { return "$" + n.toFixed(2); }
+function compTable(network) { return network === "Rose" ? COMP.rose : COMP.orangeSky; }
+function costTable(network) { return network === "Rose" ? COST.rose : COST.orangeSky; }
+function planTier(plan) { return (plan === "8GB" || plan === "15GB") ? "t20" : "t40"; }
+
+function populatePhoneDropdown() {
+  const network = document.getElementById("network").value;
+  const sel = document.getElementById("phoneModel");
+  const prevValue = sel.value;
+  sel.innerHTML = "";
+  DEVICES.forEach((d, i) => {
+    const compatible = d.networks.includes(network);
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = d.name + " — " + fmt(d.price) + (compatible ? "" : " (not available on " + network + ")");
+    opt.disabled = !compatible;
+    sel.appendChild(opt);
+  });
+  // try to keep selection if still compatible, else pick first compatible
+  if (prevValue !== "" && !sel.options[prevValue].disabled) {
+    sel.value = prevValue;
+  } else {
+    const firstCompatible = DEVICES.findIndex(d => d.networks.includes(network));
+    sel.value = firstCompatible >= 0 ? firstCompatible : 0;
+  }
+}
+
+function updateBonusHint() {
+  const term = document.getElementById("term").value;
+  const hint = document.getElementById("bonusHint");
+  const checkbox = document.getElementById("applyBonus");
+  if (term === "1") {
+    hint.textContent = "Not applicable — the Multi-Month Activation Bonus only applies to 3, 6, and 12-month plans.";
+    checkbox.checked = false;
+    checkbox.disabled = true;
+  } else {
+    checkbox.disabled = false;
+    hint.textContent = "Adds $" + ACTIVATION_BONUS[term].toFixed(2) + " per qualifying activation (8GB+ plan). Bonus expires August 31, 2026 — uncheck if outside the promo window.";
+  }
+}
+
+function updateResidualVisibility() {
+  const term = document.getElementById("term").value;
+  const card = document.getElementById("residualCard");
+  if (term === "1") {
+    card.classList.remove("disabled-section");
+  } else {
+    card.classList.add("disabled-section");
+  }
+}
+
+function updateMonthsSliderVisibility() {
+  const term = document.getElementById("term").value;
+  const block = document.getElementById("monthsConsideredBlock");
+  block.style.display = term === "1" ? "block" : "none";
+}
+
+function monthsConsideredLabel(n) {
+  if (n === 1) return "Month 1 only (activation)";
+  if (n <= 4) return "Includes activation + " + (n - 1) + " month(s) of RTR refills";
+  return "Includes activation + RTR (Months 2–4) + Residual (Months 5–" + n + ")";
+}
+
+function computeCumulativeForMonths(network, plan, autoPay, meetsThreshold, n) {
+  const schedule = build24MonthSchedule(network, plan, autoPay, meetsThreshold);
+  return schedule.slice(0, n).reduce((sum, item) => sum + item.amount + item.bonus, 0);
+}
+
+function updateMonthsConsidered(network, plan, autoPay, meetsThreshold) {
+  const slider = document.getElementById("monthsConsidered");
+  const n = parseInt(slider.value, 10);
+  document.getElementById("monthsConsideredNum").textContent = n;
+  document.getElementById("monthsConsideredHint").textContent = monthsConsideredLabel(n);
+  const cumulative = computeCumulativeForMonths(network, plan, autoPay, meetsThreshold, n);
+  document.getElementById("outCumulative").textContent = fmt(cumulative);
+}
+
+function calculate() {
+  const network = document.getElementById("network").value;
+  const plan = document.getElementById("plan").value;
+  const term = parseInt(document.getElementById("term").value, 10);
+  const applyBonus = document.getElementById("applyBonus").checked && term !== 1;
+
+  const base = compTable(network)[plan][term];
+  const bonus = applyBonus ? ACTIVATION_BONUS[term] : 0;
+  const total = base + bonus;
+
+  document.getElementById("outBase").textContent = fmt(base);
+  document.getElementById("bonusLine").style.display = bonus > 0 ? "flex" : "none";
+  document.getElementById("outBonus").textContent = fmt(bonus);
+  document.getElementById("outTotal").textContent = fmt(total);
+
+  // Phone
+  const addPhone = document.getElementById("addPhone").checked;
+  const phoneBlock = document.getElementById("phoneResultBlock");
+  const phoneWarning = document.getElementById("phoneWarning");
+  if (addPhone) {
+    const idx = parseInt(document.getElementById("phoneModel").value, 10);
+    const device = DEVICES[idx];
+    phoneBlock.style.display = "block";
+    phoneWarning.innerHTML = "";
+    if (device) {
+      const tier = planTier(plan);
+      const stackIdx = term === 1 ? 0 : 1;
+      const priceAfter = device[tier][stackIdx];
+      const rebate = device.price - priceAfter;
+      document.getElementById("outPhonePrice").textContent = fmt(device.price);
+      document.getElementById("outPhoneAfter").textContent = fmt(priceAfter);
+      document.getElementById("outRebate").textContent = fmt(rebate);
+      if (!device.networks.includes(network)) {
+        phoneWarning.innerHTML = '<div class="warning-box">' + device.name + " is not listed as available on " + network + " (available on: " + device.networks.join(", ") + "). Verify before activation.</div>";
+      }
+    }
+  } else {
+    phoneBlock.style.display = "none";
+  }
+
+  // Residual
+  const residualBlock = document.getElementById("residualResultBlock");
+  const autoPay = document.getElementById("autoPay").checked;
+  const meetsThreshold = document.getElementById("meetsThreshold").checked;
+  if (term === 1) {
+    if (meetsThreshold) {
+      const pct = 4 + (autoPay ? 5 : 0);
+      const monthly = MRC[plan] * (pct / 100);
+      residualBlock.style.display = "flex";
+      document.getElementById("outResidual").innerHTML = fmt(monthly) + ' <span id="residualPct" class="muted">(' + pct + "% of MRC)</span>";
+    } else {
+      residualBlock.style.display = "none";
+    }
+  } else {
+    residualBlock.style.display = "none";
+  }
+
+  updateMonthsSliderVisibility();
+  updateMonthsConsidered(network, plan, autoPay, meetsThreshold);
+
+  renderBreakdown(network, plan, term, bonus, autoPay, meetsThreshold);
+}
+
+// ---- Event wiring ----
+document.getElementById("network").addEventListener("change", () => { populatePhoneDropdown(); calculate(); });
+document.getElementById("plan").addEventListener("change", calculate);
+document.getElementById("term").addEventListener("change", () => { updateBonusHint(); updateResidualVisibility(); calculate(); });
+document.getElementById("applyBonus").addEventListener("change", calculate);
+document.getElementById("addPhone").addEventListener("change", () => {
+  const on = document.getElementById("addPhone").checked;
+  document.getElementById("phoneSection").classList.toggle("disabled-section", !on);
+  calculate();
+});
+document.getElementById("phoneModel").addEventListener("change", calculate);
+document.getElementById("autoPay").addEventListener("change", calculate);
+document.getElementById("meetsThreshold").addEventListener("change", calculate);
+document.getElementById("monthsConsidered").addEventListener("input", calculate);
+
+document.getElementById("breakdownToggle").addEventListener("click", () => {
+  const content = document.getElementById("breakdownContent");
+  const chevron = document.getElementById("breakdownChevron");
+  const hint = document.getElementById("breakdownCollapsedHint");
+  const isCollapsed = content.classList.contains("collapsed");
+  if (isCollapsed) {
+    content.classList.remove("collapsed");
+    chevron.classList.add("open");
+    hint.style.display = "none";
+  } else {
+    content.classList.add("collapsed");
+    chevron.classList.remove("open");
+    hint.style.display = "block";
+  }
+});
+
+// ---- Init ----
+populatePhoneDropdown();
+updateBonusHint();
+updateResidualVisibility();
+calculate();
+</script>
+</body>
+</html>
