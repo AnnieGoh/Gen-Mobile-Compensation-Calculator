@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gen Mobile Retailer Compensation Calculator</title>
+<style>
+  :root {
+    --red: #e2231a;
+    --red-dark: #b81c14;
+    --dark: #222;
+    --gray: #666;
+    --light-bg: #f5f6f8;
+    --border: #ddd;
+    --teal: #14b3ab;
+    --teal-dark: #0d7d76;
+    --teal-tint: #eafbfa;
+    --amber: #d18700;
+    --purple: #7c5cbf;
+    --eureka-dark: #4a4a46;
+    --eureka-green: #8dc63f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--light-bg);
+    color: var(--dark);
+    padding: 16px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  .eureka-bar {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 24px;
+    margin-bottom: 12px;
+    border-bottom: 3px solid var(--eureka-green);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .eureka-bar .eureka-logo-svg { height: 30px; width: auto; display: block; }
+  .eureka-bar .eureka-tag { font-size: 11px; color: var(--gray); font-weight: 500; }
+
+  .masthead {
+    background: linear-gradient(135deg, var(--red), var(--red-dark));
+    color: #fff;
+    border-radius: 10px;
+    padding: 18px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+  .masthead .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+  .masthead .logo span { font-weight: 400; }
+  .masthead .subtitle { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+  .masthead-badge {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .card h2 {
+    font-size: 15px;
+    margin: 0 0 14px 0;
+    color: var(--dark);
+    border-bottom: 2px solid var(--teal);
+    padding-bottom: 8px;
+  }
+  .card.highlight { grid-column: 1 / -1; border-top: 4px solid var(--red); }
+  .card.full { grid-column: 1 / -1; }
+
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 5px; color: var(--gray); }
+  label:first-of-type { margin-top: 0; }
+  select, input[type=range] { width: 100%; }
+  select, input[type=number] {
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    color: var(--dark);
+  }
+  input[type=number] { width: 100%; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+  .checkbox-row input { width: 16px; height: 16px; }
+  .checkbox-row label { margin: 0; font-size: 13px; color: var(--dark); font-weight: 500; }
+
+  .promo-badge {
+    display: inline-block;
+    background: var(--teal-tint);
+    color: var(--teal-dark);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-left: 8px;
+  }
+
+  .disabled-section { opacity: 0.45; pointer-events: none; }
+  .inline-note { font-size: 11px; color: var(--red); margin: 4px 0 0; font-weight: 600; }
+  .eligibility-banner {
+    background: #fff4e5;
+    border: 1px solid #f0c36d;
+    border-left: 4px solid var(--amber);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #7a5200;
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+  .qualify-list { font-size: 12px; color: var(--dark); margin: 0 0 12px; line-height: 1.6; }
+  .qualify-list strong { color: var(--dark); }
+
+  .result-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .rlabel { font-size: 13px; color: var(--gray); }
+  .result-row .rval { font-size: 16px; font-weight: 700; color: var(--dark); }
+  .result-row.total .rlabel { font-size: 14px; font-weight: 700; color: var(--dark); }
+  .result-row.total .rval { font-size: 22px; color: var(--red); }
+
+  .months-slider-block { background: var(--teal-tint); border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+  .months-slider-block .msb-label { font-size: 12px; font-weight: 700; color: var(--teal-dark); margin-bottom: 6px; }
+  .months-slider-block .msb-value { font-size: 13px; color: var(--dark); margin-top: 6px; }
+  .months-slider-block .msb-cumulative { font-size: 18px; font-weight: 800; color: var(--teal-dark); }
+
+  .footnote { font-size: 11px; color: var(--gray); margin-top: 12px; line-height: 1.5; }
+
+  .breakdown-toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+  .breakdown-toggle h2 { border-bottom: none; margin: 0; padding: 0; }
+  #breakdownChevron { font-size: 22px; font-weight: 700; color: var(--teal-dark); transition: transform 0.2s ease; display: inline-block; }
+  #breakdownChevron.open { transform: rotate(180deg); }
+
+  #breakdownContent { margin-top: 14px; }
+  #breakdownContent.collapsed { display: none; }
+
+  .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; }
+  .chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .chart-legend .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  .chart-wrap { display: flex; align-items: flex-end; gap: 3px; height: 140px; border-bottom: 1px solid var(--border); padding-bottom: 4px; overflow-x: auto; margin-bottom: 14px; }
+  .chart-bar { flex: 1 0 10px; min-width: 10px; border-radius: 3px 3px 0 0; position: relative; }
+
+  table.breakdown-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.breakdown-table th, table.breakdown-table td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--border); }
+  table.breakdown-table th:first-child, table.breakdown-table td:first-child { text-align: left; }
+  table.breakdown-table th { color: var(--gray); font-weight: 600; font-size: 11px; text-transform: uppercase; }
+  table.breakdown-table tr:hover { background: var(--light-bg); }
+  .type-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; color: #fff; }
+
+  .eureka-footer { text-align: center; font-size: 12px; color: var(--gray); margin-top: 20px; }
+  .eureka-footer .accent { color: var(--eureka-green); font-weight: 700; }
+  .legal-disclaimer { text-align: center; font-size: 10.5px; color: #999; margin-top: 8px; padding: 0 20px 10px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eureka-bar">
+    <img class="eureka-logo-svg" alt="eureka" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4QKyRXhpZgAATU0AKgAAAAgAAodpAAQAAAABAAABMuocAAcAAAEMAAAAJgAAAAAc6gAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWQAwACAAAAFAAAAoCQBAACAAAAFAAAApSSkQACAAAAAzAwAACSkgACAAAAAzAwAADqHAAHAAABDAAAAXQAAAAAHOoAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADIwMTA6MTI6MjIgMTE6MzE6MTQAMjAxMDoxMjoyMiAxMTozMToxNAAAAP/hApxodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvADw/eHBhY2tldCBiZWdpbj0n77u/JyBpZD0nVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkJz8+DQo8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIj48cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPjxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSJ1dWlkOmZhZjViZGQ1LWJhM2QtMTFkYS1hZDMxLWQzM2Q3NTE4MmYxYiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIj48eG1wOkNyZWF0ZURhdGU+MjAxMC0xMi0yMlQxMTozMToxNDwveG1wOkNyZWF0ZURhdGU+PC9yZGY6RGVzY3JpcHRpb24+PC9yZGY6UkRGPjwveDp4bXBtZXRhPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDw/eHBhY2tldCBlbmQ9J3cnPz7/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAECAu0DASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9U6KKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKK+cPFX7R/iXQ/FGsabBY6U8FneTW8bSQyliqOVBOJAM4HpXmY7MKGXxjKu3Z9kc1fEQw6Tn1Po+ivlv8A4ak8V/8APho//fmX/wCO0f8ADUniv/nw0f8A78y//Ha8f/WbL+7+44/7Sw/n9x9SUV8y6T+014ovtUs7aSw0gRzTJGxWGXIBYA4/eda+ma9fA5lh8xUnQb93e6tuddDE08Qm4dBaKKK9Q6gooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAK+GviJ/yUDxN/wBhS6/9GtX3LXw18RP+SgeJv+wpdf8Ao1q+D4t/gUvV/keFm3wR9TnqKKK/Mj5k0fDv/IwaZ/19Rf8AoYr71r4K8O/8jBpn/X1F/wChivvWv0nhH4K3qv1PpMp+GfyCiiiv0A98KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAoopKAFooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAC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BRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUVj6t4w0LQZPL1HWLGyl/55z3CK/8A3yTmmaX428P63MIrDW9Pu5icCKK5RnP/AAHOax9vS5uTnV+11cjnje19TbopKWtiwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAGSSJDG0kjKkagszMcAAdSTXzD8V/j3fa/dTab4duJLHSUJRrqPKy3Hqc9VX2HJ79cD0n9o/xRLoXgZbGByk2qS+QxBwfKAy/5/KPoxr5Sr884kzWrTn9Tou2nvPrr0/zPnsyxUov2MHbuKzF2LMSzMckk8mkz3zSUV+cnzp6t8L/jtqfhG5hsdXlk1LRWIU+YxaW3Hqp6kD+6fwxX1VZ3cOoWsNzbSrNbzIJI5EOVZSMgg/SvgCvpz9mLxRLqnhq/0adi7abIrRE9o3ydv4Mrf99V+g8N5rVlV+p1ndP4fK3T0sfQZbipOXsZu/Y9pooor9IPowooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA+f/2sIXaHwxKAfLVrlWPuRER/I18819k/GnwTJ448D3Fvap5l/asLm2UdWZQQV/FSQPfFfHDKVJUggg4II5FfkXE2HnSx7qtaTSt8kl+n4nyWZU3Gu5PZ/wDDDaKKK+TPJFr3X9lOJzrevyBfkW3jUt6EsSB+h/KvCq+uPgD4Hl8H+DfPvIzFqGpMJ5EYYZEAxGp98ZPtux2r6fhzDzrY+M1tC7f3WR6eXU3PEKS2R6bRRRX7EfYBRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAlePfFT4A2/i65m1bRJI7HVZMtLDJkRTt65H3WPr0P5mvYqK4sXg6OOp+yrxuvy9DGtRhXjyzWh8Sax8K/FuhzGO50C+bH/LS3iMyf8AfSZFR6X8M/FesTCO28P6gSTjdLA0SD6s2B+tfb1FfJf6p4fmv7SVvlf7/wDgHk/2TTv8TseI/C/9nePQbqHVfEjx3l5GQ8VlHzFGw5BY/wARHp0+te3UUtfV4PA0MBT9nQjZfi/U9WjRhQjywQUUUV3m4UUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQB//Z" />
+    <div class="eureka-tag">Authorized Gen Mobile Retailer</div>
+  </div>
+
+  <div class="masthead">
+    <div>
+      <div class="logo">gen<span>mobile</span></div>
+      <div class="subtitle">Retailer Compensation Calculator</div>
+    </div>
+    <span class="masthead-badge">Retailer Tool</span>
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h2>Activation Details</h2>
+      <label for="network">Network</label>
+      <select id="network">
+        <option value="Orange">Orange</option>
+        <option value="Sky">Sky</option>
+        <option value="Rose">Rose</option>
+      </select>
+
+      <label for="plan">Plan</label>
+      <select id="plan">
+        <option value="8GB">8GB — $20/mo</option>
+        <option value="15GB">15GB — $30/mo</option>
+        <option value="25GB">25GB — $40/mo</option>
+        <option value="UNL">Unlimited — $50/mo</option>
+      </select>
+
+      <label for="term">Number of Months (Term)</label>
+      <select id="term">
+        <option value="1">1 Month</option>
+        <option value="3">3 Months</option>
+        <option value="6">6 Months</option>
+        <option value="12">12 Months</option>
+      </select>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="applyBonus" checked>
+        <label for="applyBonus">Apply Multi-Month Activation Bonus <span class="promo-badge">Promo: Oct 1 – Oct 31, 2026</span></label>
+      </div>
+      <div class="footnote">Requires a 15GB or higher plan on a 3, 6, or 12-month activation.</div>
+      <div class="inline-note" id="bonusIneligibleNote" style="display:none;">Not eligible: October promo requires a 15GB+ plan (8GB plans no longer qualify).</div>
+    </div>
+
+    <div class="card">
+      <h2>Earn up to $1,000 Bonus for New and Inactive ARs <span class="promo-badge">Promo: Oct 1 &ndash; Nov 30, 2026</span></h2>
+      <div class="eligibility-banner">Available to select doors only. Contact your Gen Mobile Regional Account Executive or Distributor to confirm your store's eligibility.</div>
+      <div class="qualify-list">If your store is eligible for this promotion, it must meet these qualifications:
+        <br>&bull; Zero activations between Jul 1 &ndash; Sep 30, 2026
+        <br>&bull; 50%+ 2nd Month Refill (2MR) for both Oct and Nov 2026 activations
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="zeroDoorEligible">
+        <label for="zeroDoorEligible">My store meets these qualifications</label>
+      </div>
+      <div id="zeroDoorInputs" class="disabled-section">
+        <label for="zeroDoorActivations">Total Store Activations (Oct 1 &ndash; Nov 30, 2026, on $20+ plans)</label>
+        <input type="number" id="zeroDoorActivations" min="0" step="1" value="0">
+        <div class="result-row total" style="margin-top:10px;">
+          <span class="rlabel">Estimated Zero Door Bonus</span>
+          <span class="rval" id="outZeroDoorBonus">$0.00</span>
+        </div>
+        <div class="inline-note" id="zeroDoorNote" style="display:none;"></div>
+      </div>
+      <div class="footnote">Per-store bonus, separate from individual activation compensation. Tiers: 10&ndash;19 activations = $200, 20&ndash;29 = $400, 30&ndash;39 = $600, 40&ndash;49 = $800, 50+ = $1,000. Paid in January 2027 after 2MR calculation.</div>
+    </div>
+
+    <div class="card" id="residualCard">
+      <h2>Residual (1-Month Plans Only)</h2>
+      <div class="checkbox-row">
+        <input type="checkbox" id="meetsThreshold">
+        <label for="meetsThreshold">Account meets residual qualification threshold</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="autoPay">
+        <label for="autoPay">Customer enrolled in AutoPay</label>
+      </div>
+      <div class="footnote">Residual applies to months 5&ndash;24 of a 1-month plan: 4% of MRC base, plus up to an additional 5% of MRC when AutoPay is enabled &mdash; up to 9% total. Requires meeting the qualification threshold.</div>
+    </div>
+
+    <div class="card">
+      <h2>Device (Optional)</h2>
+      <div class="checkbox-row">
+        <input type="checkbox" id="addPhone">
+        <label for="addPhone">Customer is purchasing a device</label>
+      </div>
+      <label for="phoneModel">Device Model</label>
+      <select id="phoneModel" disabled>
+        <option value="">No device selected</option>
+      </select>
+    </div>
+
+    <div class="card highlight">
+      <h2>Estimated Compensation</h2>
+      <div class="result-row">
+        <span class="rlabel">Base Compensation</span>
+        <span class="rval" id="outBase">$0.00</span>
+      </div>
+      <div class="result-row" id="bonusLine">
+        <span class="rlabel">Multi-Month Activation Bonus</span>
+        <span class="rval" id="outBonus">$0.00</span>
+      </div>
+      <div class="result-row total">
+        <span class="rlabel">Total Activation Payout</span>
+        <span class="rval" id="outTotal">$0.00</span>
+      </div>
+
+      <div id="monthsConsideredBlock" class="months-slider-block" style="display:none;">
+        <div class="msb-label">Consider a customer who stays active for additional months</div>
+        <input type="range" id="monthsSlider" min="1" max="24" value="1" step="1">
+        <div class="msb-value">Through: <strong id="monthsConsideredLabel">Month 1 (activation only)</strong></div>
+        <div class="msb-cumulative">Cumulative Earnings: <span id="cumulativeTotal">$0.00</span></div>
+      </div>
+
+      <div id="phoneResultBlock" class="result-row total" style="display:none;">
+        <span class="rlabel">Device Rebate</span>
+        <span class="rval" id="outPhoneRebate">$0.00</span>
+      </div>
+
+      <div class="footnote" id="compFootnote">Compensation figures reflect Gen Mobile's official retailer compensation schedule. Multi-Month Activation Bonus promo valid Oct 1 &ndash; Oct 31, 2026, and requires a 15GB or higher plan.</div>
+    </div>
+
+    <div class="card full">
+      <div class="breakdown-toggle" id="breakdownToggle">
+        <h2>Monthly Compensation Breakdown</h2>
+        <span id="breakdownChevron">&#9662;</span>
+      </div>
+      <div id="breakdownContent" class="collapsed">
+        <div class="chart-legend" id="chartLegend"></div>
+        <div class="chart-wrap" id="chartWrap"></div>
+        <table class="breakdown-table" id="breakdownTable">
+          <thead>
+            <tr><th>Month</th><th>Type</th><th>Payout</th><th>Cumulative</th></tr>
+          </thead>
+          <tbody id="breakdownTableBody"></tbody>
+        </table>
+        <div class="footnote">Monthly splits for multi-month plans are a proportional estimate based on Gen Mobile's standard spiff schedule, scaled so the total always matches the validated compensation figure above. This is not a confirmed disbursement schedule &mdash; refer to your TSP statement for actual payout timing.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="eureka-footer">Powered by <span class="accent">eureka</span></div>
+  <div class="legal-disclaimer">Disclaimer: This calculator was independently created by Eureka Revenues, LLC and is not an official tool of Gen Mobile. It is intended for illustrative/example purposes only. Please verify all figures against official promotion details. In the event of any discrepancy, Gen Mobile's official payout determination will govern.</div>
+
+</div>
+
+<script>
+const COMP = {
+  orangeSky: {
+    "8GB":  {1: 12.00, 3: 32.40, 6: 61.20,  12: 67.20},
+    "15GB": {1: 18.00, 3: 48.60, 6: 91.80,  12: 100.80},
+    "25GB": {1: 24.00, 3: 64.80, 6: 122.40, 12: 134.40},
+    "UNL":  {1: 30.00, 3: 76.50, 6: 144.00, 12: 157.50}
+  },
+  rose: {
+    "8GB":  {1: 10.00, 3: 27.00, 6: 51.00,  12: 57.60},
+    "15GB": {1: 15.00, 3: 40.50, 6: 76.50,  12: 86.40},
+    "25GB": {1: 20.00, 3: 54.00, 6: 102.00, 12: 115.20},
+    "UNL":  {1: 25.00, 3: 63.75, 6: 120.00, 12: 135.00}
+  }
+};
+const MRC = { "8GB": 20, "15GB": 30, "25GB": 40, "UNL": 50 };
+const ACTIVATION_BONUS = { 1: 0, 3: 5, 6: 15, 12: 40 };
+const WEIGHTS = { orangeSky: [50, 60, 60, 60, 60, 60], rose: [40, 50, 50, 50, 50, 50] };
+const RTR_RATE = 0.10;
+const RESIDUAL_BASE_RATE = 0.04;
+const RESIDUAL_AUTOPAY_RATE = 0.05;
+const BONUS_ELIGIBLE_PLANS = ["15GB", "25GB", "UNL"];
+
+const ZERO_DOOR_TIERS = [
+  { min: 50, max: Infinity, payout: 1000 },
+  { min: 40, max: 49,       payout: 800 },
+  { min: 30, max: 39,       payout: 600 },
+  { min: 20, max: 29,       payout: 400 },
+  { min: 10, max: 19,       payout: 200 }
+];
+function zeroDoorPayout(count) {
+  for (const tier of ZERO_DOOR_TIERS) {
+    if (count >= tier.min && count <= tier.max) return tier.payout;
+  }
+  return 0;
+}
+function updateZeroDoor() {
+  const eligible = document.getElementById("zeroDoorEligible").checked;
+  const inputsBlock = document.getElementById("zeroDoorInputs");
+  const countInput = document.getElementById("zeroDoorActivations");
+  const note = document.getElementById("zeroDoorNote");
+
+  if (eligible) {
+    inputsBlock.classList.remove("disabled-section");
+  } else {
+    inputsBlock.classList.add("disabled-section");
+  }
+
+  const count = eligible ? (parseInt(countInput.value, 10) || 0) : 0;
+  const payout = eligible ? zeroDoorPayout(count) : 0;
+  document.getElementById("outZeroDoorBonus").textContent = fmt(payout);
+
+  if (eligible && count > 0 && count < 10) {
+    note.textContent = "Below the 10-activation minimum for this tier structure — no bonus at this activation count.";
+    note.style.display = "block";
+  } else {
+    note.style.display = "none";
+  }
+}
+
+const DEVICES = [
+  { name: "Maxwest Neo Flip (New Unlocked)", price: 40, networks: ["Rose", "Sky"], t20: [20, 0], t40: [15, 0], bundle: false },
+  { name: "BLU C5L Max (New Unlocked)", price: 50, networks: ["Rose", "Sky"], t20: [30, 25], t40: [20, 15], bundle: false },
+  { name: "Hot Pepper Tepin (New Unlocked)", price: 50, networks: ["Rose", "Sky"], t20: [30, 0], t40: [25, 0], bundle: false },
+  { name: "SCHOK Classic Flip (Renewed Unlocked)", price: 50, networks: ["Rose", "Sky"], t20: [30, 10], t40: [25, 10], bundle: false },
+  { name: "Cingular Flex 2 (Renewed Unlocked)", price: 50, networks: ["Sky"], t20: [35, 0], t40: [30, 0], bundle: false },
+  { name: "Hot Pepper Fresno (New Unlocked)", price: 55, networks: ["Rose"], t20: [40, 0], t40: [35, 0], bundle: false },
+  { name: "BLU G33 (New Unlocked)", price: 60, networks: ["Rose", "Sky"], t20: [40, 0], t40: [35, 0], bundle: false },
+  { name: "BLU G35 (New Unlocked)", price: 60, networks: ["Rose", "Sky"], t20: [40, 0], t40: [35, 0], bundle: true },
+  { name: "Foxx A65 (New Unlocked)", price: 60, networks: ["Sky"], t20: [40, 0], t40: [35, 0], bundle: false },
+  { name: "Hot Pepper Cascabel (New Unlocked)", price: 60, networks: ["Rose", "Sky"], t20: [40, 0], t40: [35, 0], bundle: false },
+  { name: "NUU A23 (New Unlocked)", price: 60, networks: ["Rose", "Sky"], t20: [40, 0], t40: [35, 0], bundle: false },
+  { name: "NUU N13 (New Unlocked)", price: 60, networks: ["Rose", "Sky"], t20: [40, 0], t40: [35, 0], bundle: false },
+  { name: "Bounce (Renewed)", price: 70, networks: ["Sky"], t20: [50, 40], t40: [40, 30], bundle: false },
+  { name: "Maxwest Astro A65 (New Unlocked)", price: 70, networks: ["Rose", "Sky"], t20: [50, 0], t40: [45, 0], bundle: false },
+  { name: "Maxwest Nitro A65 (New Unlocked)", price: 70, networks: ["Rose", "Sky"], t20: [50, 0], t40: [45, 0], bundle: true },
+  { name: "TCL 30Z (Renewed)", price: 70, networks: ["Sky"], t20: [50, 50], t40: [40, 40], bundle: false },
+  { name: "Moto G Play 2023 (Renewed)", price: 75, networks: ["Sky"], t20: [55, 30], t40: [50, 15], bundle: false },
+  { name: "Moto G Power 2022 (Renewed)", price: 75, networks: ["Sky"], t20: [55, 30], t40: [50, 15], bundle: false },
+  { name: "Samsung A03s (Renewed)", price: 75, networks: ["Sky"], t20: [55, 30], t40: [50, 15], bundle: false },
+  { name: "BLU G53 (New Unlocked)", price: 80, networks: ["Rose", "Sky"], t20: [60, 35], t40: [55, 20], bundle: false },
+  { name: "Maxwest Nitro N67 (New Unlocked)", price: 80, networks: ["Rose", "Sky"], t20: [60, 35], t40: [55, 20], bundle: true },
+  { name: "Moto G 5G 2022 (Renewed)", price: 85, networks: ["Sky"], t20: [65, 40], t40: [60, 25], bundle: false },
+  { name: "Celero 5G (Renewed)", price: 90, networks: ["Sky"], t20: [60, 60], t40: [50, 50], bundle: false },
+  { name: "Samsung Galaxy A23 5G (Renewed)", price: 100, networks: ["Rose", "Sky"], t20: [60, 35], t40: [55, 20], bundle: false },
+  { name: "Samsung Galaxy A14 5G (Renewed)", price: 110, networks: ["Rose", "Sky"], t20: [70, 45], t40: [65, 30], bundle: false },
+  { name: "Moto G 5G 2023 (Renewed)", price: 115, networks: ["Rose", "Sky"], t20: [75, 35], t40: [50, 20], bundle: false },
+  { name: "Apple iPhone SE 2020 (Renewed Unlocked)", price: 120, networks: ["Rose", "Sky", "Orange"], t20: [80, 55], t40: [75, 40], bundle: false },
+  { name: "Moto G Stylus 5G 2023 (Renewed)", price: 120, networks: ["Rose", "Sky"], t20: [80, 55], t40: [75, 40], bundle: false },
+  { name: "Moto G Stylus 5G 2024 (Renewed)", price: 120, networks: ["Rose", "Sky"], t20: [80, 55], t40: [75, 40], bundle: false },
+  { name: "Samsung Galaxy 15 5G (Renewed)", price: 120, networks: ["Rose", "Sky"], t20: [80, 55], t40: [75, 40], bundle: false },
+  { name: "Moto G Stylus 5G 2022 (Renewed)", price: 130, networks: ["Sky"], t20: [80, 70], t40: [70, 60], bundle: false },
+  { name: "Samsung Galaxy A15 5G (New Unlocked)", price: 140, networks: ["Rose", "Sky"], t20: [100, 75], t40: [95, 60], bundle: false },
+  { name: "Samsung Galaxy A32 5G (Renewed)", price: 150, networks: ["Rose", "Sky"], t20: [100, 100], t40: [90, 90], bundle: false },
+  { name: "Apple iPhone 11 (Renewed Unlocked)", price: 185, networks: ["Rose", "Sky", "Orange"], t20: [165, 140], t40: [160, 125], bundle: false },
+  { name: "Moto RAZR 2023 (Renewed)", price: 210, networks: ["Rose", "Sky"], t20: [190, 165], t40: [185, 150], bundle: false },
+  { name: "Apple iPhone 12 (Renewed Unlocked)", price: 210, networks: ["Rose", "Sky", "Orange"], t20: [205, 180], t40: [200, 165], bundle: false },
+  { name: "Apple iPhone 13 (Renewed Unlocked)", price: 315, networks: ["Rose", "Sky", "Orange"], t20: [295, 270], t40: [290, 255], bundle: false }
+];
+
+const TYPE_META = {
+  base:     { label: "Base Compensation", color: "var(--teal)" },
+  bonus:    { label: "Activation Bonus",  color: "var(--red)" },
+  rtr:      { label: "RTR (Refill Comp)", color: "var(--amber)" },
+  residual: { label: "Residual",          color: "var(--purple)" }
+};
+
+function fmt(n) { return "$" + n.toFixed(2); }
+function groupFor(network) { return network === "Rose" ? "rose" : "orangeSky"; }
+function bonusEligible(plan) { return BONUS_ELIGIBLE_PLANS.includes(plan); }
+
+function splitByWeights(total, weights) {
+  const sumW = weights.reduce((a, b) => a + b, 0);
+  let shares = weights.map(w => Math.round((total * w / sumW) * 100) / 100);
+  let sum = shares.reduce((a, b) => a + b, 0);
+  let diff = Math.round((total - sum) * 100) / 100;
+  shares[shares.length - 1] = Math.round((shares[shares.length - 1] + diff) * 100) / 100;
+  return shares;
+}
+
+function buildMultiMonthSchedule(network, plan, term, applyBonus) {
+  const group = groupFor(network);
+  const schedule = [];
+  const bonus = (applyBonus && bonusEligible(plan)) ? ACTIVATION_BONUS[term] : 0;
+
+  let baseShares;
+  if (term === 3 || term === 6) {
+    baseShares = splitByWeights(COMP[group][plan][term], WEIGHTS[group].slice(0, term));
+  } else if (term === 12) {
+    const sixTotal = COMP[group][plan][6];
+    const twelveTotal = COMP[group][plan][12];
+    const sixShares = splitByWeights(sixTotal, WEIGHTS[group].slice(0, 6));
+    const remainder = Math.round((twelveTotal - sixTotal) * 100) / 100;
+    const tailShares = splitByWeights(remainder, [1, 1, 1, 1, 1, 1]);
+    baseShares = sixShares.concat(tailShares);
+  }
+
+  for (let m = 0; m < baseShares.length; m++) {
+    schedule.push({ month: m + 1, type: "base", amount: baseShares[m] });
+  }
+  if (bonus > 0) {
+    schedule.push({ month: 1, type: "bonus", amount: bonus });
+  }
+  schedule.sort((a, b) => a.month - b.month || (a.type === "bonus" ? 1 : -1));
+  return schedule;
+}
+
+function build24MonthSchedule(network, plan, autoPay, meetsThreshold) {
+  const group = groupFor(network);
+  const mrc = MRC[plan];
+  const schedule = [];
+  schedule.push({ month: 1, type: "base", amount: COMP[group][plan][1] });
+  const rtrAmount = Math.round(mrc * RTR_RATE * 100) / 100;
+  for (let m = 2; m <= 4; m++) {
+    schedule.push({ month: m, type: "rtr", amount: rtrAmount });
+  }
+  const residualRate = meetsThreshold ? (RESIDUAL_BASE_RATE + (autoPay ? RESIDUAL_AUTOPAY_RATE : 0)) : 0;
+  const residualAmount = Math.round(mrc * residualRate * 100) / 100;
+  for (let m = 5; m <= 24; m++) {
+    schedule.push({ month: m, type: "residual", amount: residualAmount });
+  }
+  return schedule;
+}
+
+function renderBreakdown(schedule) {
+  const legend = document.getElementById("chartLegend");
+  const chartWrap = document.getElementById("chartWrap");
+  const tbody = document.getElementById("breakdownTableBody");
+  legend.innerHTML = "";
+  chartWrap.innerHTML = "";
+  tbody.innerHTML = "";
+
+  const typesUsed = [...new Set(schedule.map(r => r.type))];
+  typesUsed.forEach(t => {
+    const meta = TYPE_META[t];
+    const span = document.createElement("span");
+    span.innerHTML = '<span class="swatch" style="background:' + meta.color + '"></span>' + meta.label;
+    legend.appendChild(span);
+  });
+
+  const maxAmount = Math.max(...schedule.map(r => r.amount), 0.01);
+  let cumulative = 0;
+  schedule.forEach(row => {
+    cumulative += row.amount;
+    const meta = TYPE_META[row.type];
+
+    const bar = document.createElement("div");
+    bar.className = "chart-bar";
+    bar.style.height = Math.max((row.amount / maxAmount) * 130, 2) + "px";
+    bar.style.background = meta.color;
+    bar.title = "Month " + row.month + " — " + meta.label + ": " + fmt(row.amount);
+    chartWrap.appendChild(bar);
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td>Month ' + row.month + '</td>' +
+      '<td><span class="type-tag" style="background:' + meta.color + '">' + meta.label + '</span></td>' +
+      '<td>' + fmt(row.amount) + '</td>' +
+      '<td>' + fmt(cumulative) + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function monthsConsideredLabelText(n) {
+  if (n === 1) return "Month 1 (activation only)";
+  if (n <= 4) return "Month " + n + " (RTR period)";
+  return "Month " + n + " (residual period)";
+}
+
+function computeCumulativeForMonths(schedule, n) {
+  return schedule.filter(r => r.month <= n).reduce((sum, r) => sum + r.amount, 0);
+}
+
+function populatePhoneDropdown() {
+  const network = document.getElementById("network").value;
+  const select = document.getElementById("phoneModel");
+  const prevValue = select.value;
+  select.innerHTML = '<option value="">No device selected</option>';
+  DEVICES.forEach((d, idx) => {
+    const compatible = d.networks.includes(network);
+    const opt = document.createElement("option");
+    opt.value = idx;
+    opt.textContent = d.name + (d.bundle ? " · Case & Screen Protector Included" : "") + (compatible ? "" : " (not available on " + network + ")");
+    opt.disabled = !compatible;
+    select.appendChild(opt);
+  });
+  const stillValid = prevValue !== "" && DEVICES[prevValue] && DEVICES[prevValue].networks.includes(network);
+  select.value = stillValid ? prevValue : "";
+}
+
+function calculate() {
+  const network = document.getElementById("network").value;
+  const plan = document.getElementById("plan").value;
+  const term = parseInt(document.getElementById("term").value, 10);
+  const applyBonusChecked = document.getElementById("applyBonus").checked;
+  const group = groupFor(network);
+
+  const base = COMP[group][plan][term];
+  const eligible = bonusEligible(plan);
+  const bonus = (term > 1 && applyBonusChecked && eligible) ? ACTIVATION_BONUS[term] : 0;
+  const total = base + bonus;
+
+  document.getElementById("outBase").textContent = fmt(base);
+  document.getElementById("outBonus").textContent = fmt(bonus);
+  document.getElementById("outTotal").textContent = fmt(total);
+  document.getElementById("bonusLine").style.display = term > 1 ? "flex" : "none";
+
+  const bonusCheckbox = document.getElementById("applyBonus");
+  const bonusNote = document.getElementById("bonusIneligibleNote");
+  if (term > 1 && !eligible) {
+    bonusCheckbox.disabled = true;
+    bonusNote.style.display = "block";
+  } else {
+    bonusCheckbox.disabled = false;
+    bonusNote.style.display = "none";
+  }
+
+  const residualCard = document.getElementById("residualCard");
+  if (term === 1) {
+    residualCard.classList.remove("disabled-section");
+  } else {
+    residualCard.classList.add("disabled-section");
+  }
+
+  const addPhone = document.getElementById("addPhone").checked;
+  const phoneSelect = document.getElementById("phoneModel");
+  phoneSelect.disabled = !addPhone;
+  const phoneResultBlock = document.getElementById("phoneResultBlock");
+  if (addPhone && phoneSelect.value !== "") {
+    const device = DEVICES[phoneSelect.value];
+    const tier = MRC[plan] >= 40 ? "t40" : "t20";
+    const stackIdx = term > 1 ? 1 : 0;
+    const priceAfterRebate = device[tier][stackIdx];
+    const rebate = Math.round((device.price - priceAfterRebate) * 100) / 100;
+    document.getElementById("outPhoneRebate").textContent = fmt(rebate);
+    phoneResultBlock.style.display = "flex";
+  } else {
+    phoneResultBlock.style.display = "none";
+  }
+
+  const monthsBlock = document.getElementById("monthsConsideredBlock");
+  let schedule;
+  if (term === 1) {
+    monthsBlock.style.display = "block";
+    const autoPay = document.getElementById("autoPay").checked;
+    const meetsThreshold = document.getElementById("meetsThreshold").checked;
+    schedule = build24MonthSchedule(network, plan, autoPay, meetsThreshold);
+    const slider = document.getElementById("monthsSlider");
+    const n = parseInt(slider.value, 10);
+    document.getElementById("monthsConsideredLabel").textContent = monthsConsideredLabelText(n);
+    document.getElementById("cumulativeTotal").textContent = fmt(computeCumulativeForMonths(schedule, n));
+  } else {
+    monthsBlock.style.display = "none";
+    schedule = buildMultiMonthSchedule(network, plan, term, applyBonusChecked);
+  }
+
+  renderBreakdown(schedule);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  populatePhoneDropdown();
+  calculate();
+  updateZeroDoor();
+
+  ["network", "plan", "term", "applyBonus", "addPhone", "phoneModel", "autoPay", "meetsThreshold"].forEach(id => {
+    document.getElementById(id).addEventListener("change", function () {
+      if (id === "network") populatePhoneDropdown();
+      calculate();
+    });
+  });
+
+  document.getElementById("monthsSlider").addEventListener("input", calculate);
+
+  document.getElementById("zeroDoorEligible").addEventListener("change", updateZeroDoor);
+  document.getElementById("zeroDoorActivations").addEventListener("input", updateZeroDoor);
+
+  document.getElementById("breakdownToggle").addEventListener("click", function () {
+    const content = document.getElementById("breakdownContent");
+    const chevron = document.getElementById("breakdownChevron");
+    content.classList.toggle("collapsed");
+    chevron.classList.toggle("open");
+  });
+});
+</script>
+</body>
+</html>
